@@ -384,6 +384,18 @@ final class AESTests: XCTestCase {
         let plaintext = try! ciphertext.decrypt(cipher: aes)
         XCTAssertEqual("74657374", plaintext.toHexString())
     }
+
+    func testEncryptTooLongKey() {
+        let key = "f83c08efba542f025f13cfd90110e29a09add0de242b3o587dbc3777b2232dbn".bytes
+        let iv = "0000000000000000".bytes
+
+        do {
+            let aes = try AES(key: key, blockMode: CBC(iv: iv))
+            _ = try aes.encrypt(key)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
 }
 
 // MARK: - GCM
@@ -521,7 +533,7 @@ extension AESTests {
         XCTAssertEqual(Array(encrypted), [UInt8](hex: "")) // C
         XCTAssertEqual(gcm.authenticationTag, [UInt8](hex: "0xcd33b28ac773f74ba00ed1f312572435")) // T (128-bit)
     }
-    
+
     func testAESGCMTagLengthDetached() {
         // Test Case 2
         let key = Array<UInt8>(hex: "0x00000000000000000000000000000000")
@@ -678,7 +690,8 @@ extension AESTests {
             ("testAESGCMTestTagLengthDetached", testAESGCMTagLengthDetached),
             ("testAESGCMTestTagLengthCombined", testAESGCMTagLengthCombined),
             ("testAESGCMTestCaseIrregularCombined1", testAESGCMTestCaseIrregularCombined1),
-            ("testAESGCMTestCaseIrregularCombined2", testAESGCMTestCaseIrregularCombined2)
+            ("testAESGCMTestCaseIrregularCombined2", testAESGCMTestCaseIrregularCombined2),
+            ("testEncryptTooLongKey", testEncryptTooLongKey)
         ]
         return tests
     }
