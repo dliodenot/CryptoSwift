@@ -651,6 +651,55 @@ extension AESTests {
         let decrypted = decrypt(encrypted)
         XCTAssertEqual(decrypted, plaintext)
     }
+
+    func testEncryptTooLongKey() {
+        let key = "f83c08efba542f025f13cfd90110e29a09add0de242b3o587dbc3777b2232dbn".bytes
+        let iv = "0000000000000000".bytes
+
+        do {
+            let aes = try AES(key: key, blockMode: CBC(iv: iv))
+            _ = try aes.encrypt(key)
+            XCTFail("not supposed to success without specified variant")
+        } catch {
+        }
+    }
+
+    func testEncryptTooLongWithVariantKey() {
+        let key = "f83c08efba542f025f13cfd90110e29a09add0de242b3o587dbc3777b2232dbn".bytes
+        let iv = "0000000000000000".bytes
+
+        do {
+            let aes = try AES(key: key, blockMode: CBC(iv: iv), variant: .aes128)
+            _ = try aes.encrypt(key)
+        } catch {
+            XCTFail("an error occured : \(error)")
+        }
+    }
+
+
+    func testEncryptTooShortKey() {
+        let key = "f83".bytes
+        let iv = "0000000000000000".bytes
+
+        do {
+            let aes = try AES(key: key, blockMode: CBC(iv: iv))
+            _ = try aes.encrypt(key)
+            XCTFail("not supposed to success without specified variant")
+        } catch {
+        }
+    }
+
+    func testEncryptTooShortWithVariantKey() {
+        let key = "f83".bytes
+        let iv = "0000000000000000".bytes
+
+        do {
+            let aes = try AES(key: key, blockMode: CBC(iv: iv), variant: .aes128)
+            _ = try aes.encrypt(key)
+        } catch {
+            XCTFail("an error occured : \(error)")
+        }
+    }
 }
 
 extension AESTests {
@@ -691,7 +740,10 @@ extension AESTests {
             ("testAESGCMTestTagLengthCombined", testAESGCMTagLengthCombined),
             ("testAESGCMTestCaseIrregularCombined1", testAESGCMTestCaseIrregularCombined1),
             ("testAESGCMTestCaseIrregularCombined2", testAESGCMTestCaseIrregularCombined2),
-            ("testEncryptTooLongKey", testEncryptTooLongKey)
+            ("testEncryptTooLongKey", testEncryptTooLongKey),
+            ("testEncryptTooLongWithVariantKey", testEncryptTooLongWithVariantKey),
+            ("testEncryptTooShortKey", testEncryptTooShortKey),
+            ("testEncryptTooShortWithVariantKey", testEncryptTooShortWithVariantKey)
         ]
         return tests
     }
