@@ -64,7 +64,7 @@ public final class AES: BlockCipher {
     public static let blockSize: Int = 16 // 128 /8
     public let keySize: Int
 
-    /// AES Variant
+    /// MARK: - AES Variant
     public let variant: Variant
 
     // Parameters
