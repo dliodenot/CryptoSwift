@@ -25,8 +25,6 @@ public final class AES: BlockCipher {
         case dataPaddingRequired
         /// Invalid Data
         case invalidData
-        /// Invalid key size for aes variant
-        case invalidKeySize
     }
 
     public enum Variant: Int {
@@ -65,10 +63,6 @@ public final class AES: BlockCipher {
             throw Error.invalidKeySize
         }
     }
-
-    private let variantNr: Int
-    private let variantNb: Int
-    private let variantNk: Int
 
     public static let blockSize: Int = 16 // 128 /8
     public let keySize: Int
@@ -158,7 +152,7 @@ public final class AES: BlockCipher {
             return Array(block)
         }
 
-        let rounds = variantNr
+        let rounds = variant.Nr
         let rk = expandedKey
 
         let b00 = UInt32(block[block.startIndex.advanced(by: 0)])
@@ -252,7 +246,7 @@ public final class AES: BlockCipher {
             return Array(block)
         }
 
-        let rounds = variantNr
+        let rounds = variant.Nr
         let rk = expandedKeyInv
 
         // Save miliseconds by not using `block.toUInt32Array()`
@@ -363,7 +357,7 @@ public final class AES: BlockCipher {
 
 private extension AES {
     private func expandKeyInv(_ key: Key, variant: Variant) -> Array<Array<UInt32>> {
-        let rounds = variantNr
+        let rounds = variant.Nr
         var rk2: Array<Array<UInt32>> = expandKey(key, variant: variant)
 
         for r in 1..<rounds {
@@ -405,7 +399,7 @@ private extension AES {
             word[3] = UInt8(sBox[Int(word[3])])
         }
 
-        let wLength = variantNb * (variantNr + 1) * 4
+        let wLength = variant.Nb * (variant.Nr + 1) * 4
         let w = UnsafeMutablePointer<UInt8>.allocate(capacity: wLength)
         w.initialize(repeating: 0, count: wLength)
         defer {
@@ -413,7 +407,7 @@ private extension AES {
             w.deallocate()
         }
 
-        for i in 0..<variantNk {
+        for i in 0..<variant.Nk {
             for wordIdx in 0..<4 {
                 w[(4 * i) + wordIdx] = key[(4 * i) + wordIdx]
             }
@@ -421,22 +415,22 @@ private extension AES {
 
         var tmp: Array<UInt8>
 
-        for i in variantNk..<variantNb * (variantNr + 1) {
+        for i in variant.Nk..<variant.Nb * (variant.Nr + 1) {
             tmp = Array<UInt8>(repeating: 0, count: 4)
 
             for wordIdx in 0..<4 {
                 tmp[wordIdx] = w[4 * (i - 1) + wordIdx]
             }
-            if (i % variantNk) == 0 {
+            if (i % variant.Nk) == 0 {
                 tmp = subWord(rotateLeft(UInt32(bytes: tmp), by: 8).bytes(totalBytes: 4))
-                tmp[0] = tmp.first! ^ AES.Rcon[i / variantNk]
-            } else if variantNk > 6 && (i % variantNk) == 4 {
+                tmp[0] = tmp.first! ^ AES.Rcon[i / variant.Nk]
+            } else if variant.Nk > 6 && (i % variant.Nk) == 4 {
                 subWordInPlace(&tmp)
             }
 
             // xor array of bytes
             for wordIdx in 0..<4 {
-                w[4 * i + wordIdx] = w[4 * (i - variantNk) + wordIdx] ^ tmp[wordIdx]
+                w[4 * i + wordIdx] = w[4 * (i - variant.Nk) + wordIdx] ^ tmp[wordIdx]
             }
         }
         return convertExpandedKey(Array(UnsafeBufferPointer(start: w, count: wLength)))
